@@ -20,7 +20,8 @@ require 'build/dependency/openjdk/ca_certs_builder'
 require 'build/dependency/openjdk/jdk6_cloner'
 require 'build/dependency/openjdk/jdk7_cloner'
 require 'build/dependency/openjdk/jdk8_cloner'
-require 'build/dependency/openjdk/bootstrap_jdk_builder'
+require 'build/dependency/openjdk/bootstrap_jdk6_builder'
+require 'build/dependency/openjdk/bootstrap_jdk7_and_8_builder'
 require 'build/dependency/openjdk/jre6_and_7_jre_builder'
 require 'build/dependency/openjdk/jre8_jre_builder'
 require 'build/dependency/openjdk/openjdk_resources'
@@ -48,7 +49,7 @@ module Build
         ant_builder = AntBuilder.new
         ant_builder.build
 
-        bootstrap_jdk_builder = BootstrapJDKBuilder.new
+        bootstrap_jdk_builder = version_details[:bootstrap_jdk_builder]
         bootstrap_jdk_builder.build
 
         cacerts_builder = CACertsBuilder.new
@@ -72,18 +73,21 @@ module Build
       def version_specific(version, development)
         if version =~ /^1.6/
           {
-            cloner:      JDK6Cloner.new(development),
-            jre_builder: JRE6And7JREBuilder.new
+            bootstrap_jdk_builder: BootstrapJDK6Builder.new,
+            cloner:                JDK6Cloner.new(development),
+            jre_builder:           JRE6And7JREBuilder.new
           }
         elsif version =~ /^1.7/
           {
-            cloner:      JDK7Cloner.new(development),
-            jre_builder: JRE6And7JREBuilder.new
+            bootstrap_jdk_builder: BootstrapJDK7And8Builder.new,
+            cloner:                JDK7Cloner.new(development),
+            jre_builder:           JRE6And7JREBuilder.new
           }
         elsif version =~ /^1.8/
           {
-            cloner:      JDK8Cloner.new(development),
-            jre_builder: JRE8JREBuilder.new
+            bootstrap_jdk_builder: BootstrapJDK7And8Builder.new,
+            cloner:                JDK8Cloner.new(development),
+            jre_builder:           JRE8JREBuilder.new
           }
         else
           fail "Unable to process version '#{version}'"

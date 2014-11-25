@@ -15,11 +15,11 @@
 
 require 'spec_helper'
 require 'console_helper'
-require 'build/dependency/openjdk/bootstrap_jdk_builder'
+require 'build/dependency/openjdk/bootstrap_jdk7_and_8_builder'
 require 'build/dependency/util/platform_details'
 require 'English'
 
-describe Build::Dependency::BootstrapJDKBuilder do
+describe Build::Dependency::BootstrapJDK7And8Builder do
   include_context 'console_helper'
 
   let(:builder) { described_class.new }

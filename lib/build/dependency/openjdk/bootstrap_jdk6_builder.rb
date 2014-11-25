@@ -20,7 +20,7 @@ require 'fileutils'
 
 module Build
   module Dependency
-    class BootstrapJDKBuilder
+    class BootstrapJDK6Builder
       include OpenJDKResources
       include PlatformDetails
 
@@ -29,11 +29,11 @@ module Build
 
         puts 'Downloading bootstrap JDK...'
         FileUtils.mkdir_p root
-        system "curl -ssL http://boxes.gopivotal.com.s3.amazonaws.com/#{codename}64-openjdk-1.7.0_60.tar.gz | tar xz --strip 1 -C #{root}"
+        system "curl -ssL http://boxes.gopivotal.com.s3.amazonaws.com/#{codename}64-openjdk-1.6.0_31.tar.gz | tar xz --strip 1 -C #{root}"
       end
 
       def root
-        File.join VENDOR_DIR, 'bootstrap-jdk', codename
+        File.join VENDOR_DIR, 'bootstrap-jdk-6', codename
       end
     end
   end
