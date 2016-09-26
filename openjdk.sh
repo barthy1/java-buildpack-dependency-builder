@@ -27,10 +27,11 @@ build() {
       --with-build-number=$BUILD_NUMBER \
       --with-cacerts-file=$(pwd)/../cacerts.jks \
       $(freetype_flags) \
+      --build=powerpc64le-linux-gnu\
       --with-milestone=fcs \
       --with-update-version=$UPDATE_VERSION \
       $(xcode_location)
-
+      
     COMPANY_NAME="Cloud Foundry" make images
 
     chmod -R a+r build/$(release_name)/images
@@ -77,6 +78,9 @@ freetype_flags() {
   if [[ "$PLATFORM" == "mountainlion" ]]; then
     echo "--with-freetype-include=/usr/local/include/freetype2 \
       --with-freetype-lib=/usr/local/lib"
+  elif [[ "$ARCH" == "ppc64le" ]]; then
+    echo "--with-freetype-include=/usr/include/freetype2 \
+      --with-freetype-lib=/usr/lib/powerpc64le-linux-gnu"
   else
     echo "--with-freetype-include=/usr/include/freetype2 \
       --with-freetype-lib=/usr/lib/x86_64-linux-gnu"
@@ -91,6 +95,8 @@ libattach_location() {
 
   if [[ "$PLATFORM" == "mountainlion" ]]; then
     echo "./lib/libattach.dylib"
+  elif [[ "$ARCH" == "ppc64le" ]]; then
+    echo "./lib/ppc64/libattach.so"
   else
     echo "./lib/amd64/libattach.so"
   fi
@@ -104,6 +110,8 @@ release_name() {
 
   if [[ "$PLATFORM" == "mountainlion" ]]; then
     echo "macosx-x86_64-normal-server-release"
+  elif [[ "$ARCH" == "ppc64le" ]]; then
+    echo "linux-ppc64-normal-server-release"
   else
     echo "linux-x86_64-normal-server-release"
   fi
@@ -140,7 +148,7 @@ upload_path_jdk() {
     exit 1
   fi
 
-  echo "/openjdk-jdk/$PLATFORM/x86_64/openjdk-$UPLOAD_VERSION.tar.gz"
+  echo "/openjdk-jdk/$PLATFORM/$ARCH/openjdk-$UPLOAD_VERSION.tar.gz"
 }
 
 upload_path_jre() {
@@ -154,7 +162,7 @@ upload_path_jre() {
     exit 1
   fi
 
-  echo "/openjdk/$PLATFORM/x86_64/openjdk-$UPLOAD_VERSION.tar.gz"
+  echo "/openjdk/$PLATFORM/$ARCH/openjdk-$UPLOAD_VERSION.tar.gz"
 }
 
 xcode_location() {
@@ -166,18 +174,21 @@ xcode_location() {
 }
 
 PATH=/usr/local/bin:$PATH
+if [ -z "$ARCH" ]; then
+ARCH="x86_64"
+fi
 
 UPLOAD_PATH_JDK=$(upload_path_jdk)
 UPLOAD_PATH_JRE=$(upload_path_jre)
-INDEX_PATH_JDK="/openjdk-jdk/$PLATFORM/x86_64/index.yml"
-INDEX_PATH_JRE="/openjdk/$PLATFORM/x86_64/index.yml"
+INDEX_PATH_JDK="/openjdk-jdk/$PLATFORM/$ARCH/index.yml"
+INDEX_PATH_JRE="/openjdk/$PLATFORM/$ARCH/index.yml"
 
 create_cacerts
 clone_repository
 build
 
-transfer_to_s3 'openjdk-jdk.tar.gz' $UPLOAD_PATH_JDK
-transfer_to_s3 'openjdk.tar.gz' $UPLOAD_PATH_JRE
-update_index $INDEX_PATH_JDK $UPLOAD_VERSION $UPLOAD_PATH_JDK
-update_index $INDEX_PATH_JRE $UPLOAD_VERSION $UPLOAD_PATH_JRE
-invalidate_cache $INDEX_PATH_JDK $INDEX_PATH_JRE $UPLOAD_PATH_JDK $UPLOAD_PATH_JRE
+#transfer_to_s3 'openjdk-jdk.tar.gz' $UPLOAD_PATH_JDK
+#transfer_to_s3 'openjdk.tar.gz' $UPLOAD_PATH_JRE
+#update_index $INDEX_PATH_JDK $UPLOAD_VERSION $UPLOAD_PATH_JDK
+#update_index $INDEX_PATH_JRE $UPLOAD_VERSION $UPLOAD_PATH_JRE
+#invalidate_cache $INDEX_PATH_JDK $INDEX_PATH_JRE $UPLOAD_PATH_JDK $UPLOAD_PATH_JRE
